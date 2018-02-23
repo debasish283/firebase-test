@@ -17,47 +17,39 @@ var ref = db.ref("users");
 var jsonObj = {};
 var jsonArray = [];
 // var url = "http://http://smartthinkdemo.southeastasia.cloudapp.azure.com:12206/gelf"
-var url = "http://localhost:12201/gelf";
+// var url = "http://localhost:12201/gelf";
 
+var url = "http://smartthinkdemo.southeastasia.cloudapp.azure.com:12203/gelf";
 ref.on("value", function(snapshot) {
-  // console.log(snapshot.val());
   jsonObj = snapshot.val();
 
   for (var key in jsonObj) {
-    // if (jsonObj.hasOwnProperty(key)) {
-    //     console.log(key + " -> " + JSON.stringify(jsonObj[key]));
-    // }
-    // console.log(key + " -> " + JSON.stringify(jsonObj[key]));
-    jsonArray.push(jsonObj[key])
+    var val = {};
+    val[key] = jsonObj[key]
+    jsonArray.push(val)
+  }
 
+  for(var i=0; i<3; i++){
+    jsonArray[i].host = "firebase";
+    jsonArray[i].message = "microland-one-staging";
+    console.log(jsonArray[i])
+    request({
+            url: url,
+            method: "POST",
+            json: true,
+            headers: {
+                "content-type": "application/json",
+            },
+            body: jsonArray[i]
+        }, function (error, response, body) {
+            console.log(response.statusCode, ":response")
 
-}
-console.log(JSON.stringify(jsonArray));
-fs.writeFile('data.json',JSON.stringify(jsonArray),function(err){
-    if(err) throw err;
-  })
-
-  // for(var i=0; i<3; i++){
-  //   jsonArray[i].host = "firebase";
-  //   jsonArray[i].message = "microland-one-staging";
-  //   // console.log(jsonArray[i])
-  //   request({
-  //           url: url,
-  //           method: "POST",
-  //           json: true,
-  //           headers: {
-  //               "content-type": "application/json",
-  //           },
-  //           body: jsonArray
-  //       }, function (error, response, body) {
-  //           console.log(response.statusCode, ":response")
-  //
-  //           if(error){
-  //               console.log(Error(error))
-  //           }
-  //           if (!error && response.statusCode === 202) {
-  //               console.log('success');
-  //           }
-  //     });
-  // }
+            if(error){
+                console.log(Error(error))
+            }
+            if (!error && response.statusCode === 202) {
+                console.log('success');
+            }
+      });
+  }
 });
